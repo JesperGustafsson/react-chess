@@ -1,6 +1,6 @@
 {
   "homepage": "https://jespergustafsson.github.io/react-chess/",
-  "name": "my-app2",
+  "name": "react-chess",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
