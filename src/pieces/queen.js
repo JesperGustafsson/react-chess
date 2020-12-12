@@ -3,56 +3,45 @@ import Piece from './piece.js';
 export default class Queen extends Piece {
   constructor(player){
     super(player, (player === 1? "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg" : "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg"));
+    this.atk = 5;
+    this.hp = 10;
   }
 
-  isMoveLegal(src, dest) {
-    return true;
-  }
-
-  isMovePossible(src, dest){
-    let mod = src % 8;
-    let diff = 8 - mod;
+  isMoveLegal(src, dest, squares) {
+    // Possible movement: straight(max), diagonal(max)
     
-    return (Math.abs(src - dest) % 9 === 0 || Math.abs(src - dest) % 7 === 0) ||
-      (Math.abs(src - dest) % 8 === 0 || (dest >= (src - mod) && dest < (src + diff)));
-  }
+    let destX = dest[0];
+    let destY = dest[1];
+    let srcX = src[0];
+    let srcY = src[1];
 
-  /**
-   * get path between src and dest (src and dest exclusive)
-   * @param  {num} src  
-   * @param  {num} dest 
-   * @return {[array]}      
-   */
-  getSrcToDestPath(src, dest){
-    let path = [], pathStart, pathEnd, incrementBy;
-    if(src > dest){
-      pathStart = dest;
-      pathEnd = src;
-    }
-    else{
-      pathStart = src;
-      pathEnd = dest;
-    }
-    if(Math.abs(src - dest) % 8 === 0){
-      incrementBy = 8;
-      pathStart += 8;
-    }
-    else if(Math.abs(src - dest) % 9 === 0){
-      incrementBy = 9;
-      pathStart += 9;
-    }
-    else if(Math.abs(src - dest) % 7 === 0){
-      incrementBy = 7;
-      pathStart += 7;
-    }
-    else{
-      incrementBy = 1;
-      pathStart += 1;
-    }
+    console.log(`srcX: ${srcX}, srcY: ${srcY}, destX: ${destX}, destY: ${destY}`)
 
-    for(let i = pathStart; i < pathEnd; i+=incrementBy){
-      path.push(i);
+
+    // Move  (Horizontal || Vertical) || Diagonal 
+    if (!((srcX === destX || srcY === destY) || (Math.abs(destX - srcX)) === (Math.abs(destY - srcY)))) {
+      return false;
+    } else {
+      let dirX = destX > srcX ? 1 : destX < srcX ? -1 : 0;  //X-axis direction
+      let dirY = destY > srcY ? 1 : destY < srcY ? -1 : 0;  //Y-axis direction
+      let nextX = srcX;
+      let nextY = srcY;
+  
+      let nextStep = this.step(dirX, dirY, nextX, nextY, 1);
+      nextX = nextStep[0];
+      nextY = nextStep[1];
+
+      while (nextX !== destX || nextY !== destY){
+
+          if (!(squares[nextX][nextY] == null)) return false;
+          
+          let nextStep = this.step(dirX, dirY, nextX, nextY, 1);
+          nextX = nextStep[0];
+          nextY = nextStep[1];
+      }
+      
+      return true;      
+
     }
-    return path;
   }
 }

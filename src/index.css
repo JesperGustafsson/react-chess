@@ -45,8 +45,25 @@ ul {
   margin-right: -1px;
   margin-top: -1px;
   padding: 0;
-  text-align: center;
   width: 48px;
+  font-size: 8px;
+}
+
+.square .hp-atk {
+  position: relative;
+}
+.square .hp {
+  color: green;
+  position: absolute;
+  left: 0;
+  margin-left: 2px;
+}
+
+.square .atk {
+  color: red;
+  position: absolute;
+  right: 0;
+  margin-right: 2px;
 }
 
 .square:focus {

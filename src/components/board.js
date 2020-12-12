@@ -12,6 +12,8 @@ export default class Board extends React.Component {
     //piece = {this.props.squares[i]} 
     image = {this.props.squares[row][col]? this.props.squares[row][col].image : null}
     shade = {squareShade}
+    hp = {this.props.squares[row][col] ? this.props.squares[row][col].hp : null}
+    atk = {this.props.squares[row][col] ? this.props.squares[row][col].atk : null}
 
     onClick={() => this.props.onClick(pos)}
     />

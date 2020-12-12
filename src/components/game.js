@@ -12,13 +12,17 @@ export default class Game extends React.Component {
       whiteFallenSoldiers: [],
       blackFallenSoldiers: [],
       player: 1,
-      sourceSelection: -1,
+      attackingPiece: -1,
+      defendingPiece: -1,
+      PHASE: "PICKING",
       status: '',
-      turn: 'white'
+      turn: 'white',
+      gameOver: false
     }
   }
  
   handleClick(pos){
+    let gameOver = false;
     const row = pos[0];
     const col = pos[1];
     console.log("Click");
@@ -26,39 +30,34 @@ export default class Game extends React.Component {
     const squares = this.state.squares;
     
     //Selection click
-    if(this.state.sourceSelection === -1){
-      console.log("Click: Selection")
+    if(this.state.PHASE === "PICKING"){
+
       //Picks own piece
-      console.log(row + "," + col);
-      console.log(squares[row][col]);
-      if(squares[row][col]) {console.log(squares[row][col].player);}
-      
       if(squares[row][col] && (squares[row][col].player === this.state.player)) {
         this.setState({
           status: "Select Destination",
-          sourceSelection: pos
+          attackingPiece: pos,
+          PHASE: "ATTACKING"
         });
       }
 
       //Picks not own piece
       else {
         this.setState({
-          status: "Wrong Selection",    
+          status: "Wrong Selection, pick your own piece",    
         });
       }
     }
       
     //Destination Click
     else {
-      console.log("Destination Click");
-
-      const isMoveLegal = squares[this.state.sourceSelection[0]][this.state.sourceSelection[1]].isMoveLegal(this.state.sourceSelection, pos);
+      const isMoveLegal = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]].isMoveLegal(this.state.attackingPiece, pos, squares);
       
       if (!isMoveLegal) {
         console.log("Your pawn cannot move there, choose another piece");
         this.setState({
           status: "Your pawn cannot move there, choose another piece",
-          sourceSelection: -1
+          PHASE: "PICKING"
         });
       }
 
@@ -67,18 +66,55 @@ export default class Game extends React.Component {
       else if (squares[row][col] == null) {
         console.log("Empty click")
 
-        squares[row][col] = squares[this.state.sourceSelection[0]][this.state.sourceSelection[1]]
-        squares[this.state.sourceSelection[0]][this.state.sourceSelection[1]] = null;
+        squares[row][col] = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]]
+        squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]] = null;
        
         this.setState({
           status: "Empty click",
-          sourceSelection: -1
+          PHASE: "PICKING",
+          player: this.state.player*-1,
+          turn: this.state.turn === "white" ? "black": "white"
         });
       }
 
       //Valid click (Enemy)
       else if (squares[row][col].player && squares[row][col].player == this.state.player*-1) { 
         console.log("Enemy click")
+
+        let defendingPiece = squares[row][col];
+        console.log(defendingPiece.constructor.name);
+
+        let attackingPiece = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]]
+        console.log(`player:${this.state.player}, hp: ${defendingPiece.hp}, atk: ${attackingPiece.atk}`)
+        //COMBAT
+        defendingPiece.hp -= attackingPiece.atk;
+        if (!defendingPiece.hp || defendingPiece.hp < 0) {
+          console.log("AYYY PIECE FUCKIGN DFEAD YO ");
+          if (defendingPiece.constructor.name === "King") {
+            console.log("GAME OVER MAN GAME OVER");
+            gameOver = true;
+          }
+          squares[row][col] = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]];
+          squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]] = null;
+        }
+        
+        console.log(gameOver);
+        if (!gameOver) {
+          console.log("NOT GAME OVER!!!")
+
+          this.setState({
+            status: "Enemy attacked",
+            PHASE: "PICKING",
+            player: this.state.player*-1,
+            turn: this.state.turn === "white" ? "black": "white"
+          });
+        } else {
+          console.log("GAME OVER!!!")
+          this.setState({
+            status: `Player ${this.state.turn} wins`,
+          });
+        }
+        
       }
       //Invalid click (Self)
       else if (squares[row][col].player && squares[row][col].player == this.state.player) {
@@ -94,89 +130,13 @@ export default class Game extends React.Component {
         console.log("Unknown Click")
       }
     }
-
-
-
-
-/*
-    else if(this.state.sourceSelection > -1){
-      squares[this.state.sourceSelection].image = {...squares[this.state.sourceSelection].image, backgroundColor: null}
-    // Moves to own pieces
-      if(squares[i] && squares[i].player === this.state.player){
-        this.setState({
-          status: "Wrong selection. Choose valid source and destination again.",
-          sourceSelection: -1,
-        })
-        
-      }
-
-      // Moves to empty/opponent
-      else{
-        
-        const squares = this.state.squares.slice();
-        const whiteFallenSoldiers = this.state.whiteFallenSoldiers.slice();
-        const blackFallenSoldiers = this.state.blackFallenSoldiers.slice();
-        const isDestEnemyOccupied = squares[i]? true : false; 
-        const isMovePossible = squares[this.state.sourceSelection].isMovePossible(this.state.sourceSelection, i, isDestEnemyOccupied);
-        const srcToDestPath = squares[this.state.sourceSelection].getSrcToDestPath(this.state.sourceSelection, i);
-        const isMoveLegal = this.isMoveLegal(srcToDestPath);
-
-
-          //Legal move
-        if(isMovePossible && isMoveLegal){
-
-          //Attack
-          if(squares[i] !== null){
-            if(squares[i].player === 1){
-              whiteFallenSoldiers.push(squares[i]);
-            }
-            else{
-              blackFallenSoldiers.push(squares[i]);
-            }
-          }
-
-          squares[i] = squares[this.state.sourceSelection];
-          squares[this.state.sourceSelection] = null;
-          let player = this.state.player === 1? 2: 1;
-          let turn = this.state.turn === 'white'? 'black' : 'white';
-          this.setState({
-            sourceSelection: -1,
-            squares: squares,
-            whiteFallenSoldiers: whiteFallenSoldiers,
-            blackFallenSoldiers: blackFallenSoldiers,
-            player: player,
-            status: '',
-            turn: turn
-          });
-        }
-
-        //Illegal move
-        else{
-          this.setState({
-            status: "Wrong selection. Choose valid source and destination again.",
-            sourceSelection: -1,
-          });
-        }
-      }
-    }
-    */
-
   }
 
   /**
    * Check all path indices are null. For one steps move of pawn/others or jumping moves of knight array is empty, so  move is legal.
-   * @param  {[type]}  srcToDestPath [array of board indices comprising path between src and dest ]
+   * @param  {[type]}  srcToDestPath [array of board in dices comprising path between src and dest ]
    * @return {Boolean}               
    */
-  isMoveLegal(srcToDestPath){
-    let isLegal = true;
-    for(let i = 0; i < srcToDestPath.length; i++){
-      if(this.state.squares[srcToDestPath[i]] !== null){
-        isLegal = false;
-      }
-    }
-    return isLegal;
-  }
 
   render() {
     console.log("GAME UPDATE")

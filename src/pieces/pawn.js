@@ -10,53 +10,21 @@ export default class Pawn extends Piece {
   }
 
   isMoveLegal(src, dest) {
-    const src_row = src[0];
-    const src_col = src[1];
-    const dest_row = dest[0];
-    const dest_col = dest[1];
-    console.log(src_row + "," + src_col + " --> " + dest_row + "," + dest_col);
-    console.log(dest_row)
-    console.log(src_row + -1*this.player)
-    if (dest_row == src_row - 1*(-1*this.player)) {
-      console.log("LEGAL MOVE!");
+    /*  MOVE PATTERN
+           OOO
+           XPX
+           XXX
+    */
+    const srcY = src[0];
+    const srcX = src[1];
+    const destY = dest[0];
+    const destX = dest[1];
+
+    console.log(`srcX: ${srcX}, srcY: ${srcY}, destX: ${destX}, destY: ${destY}`)
+
+    if (destY == srcY - 1*(-1*this.player)) {
       return true;
     }
     return false;
-  }
-  isMovePossible(src, dest, isDestEnemyOccupied){
-
-    if(this.player === 1){
-      if((dest === src - 8 && !isDestEnemyOccupied) || (dest === src - 16 && this.initialPositions[1].indexOf(src) !== -1)){
-        return true;
-      }
-      else if(isDestEnemyOccupied && (dest === src - 9 || dest === src - 7)){
-        return true;
-      }
-    }
-    else if(this.player === 2){
-      if((dest === src + 8 && !isDestEnemyOccupied) || (dest === src + 16 && this.initialPositions[2].indexOf(src) !== -1)){
-        return true;
-      }
-      else if(isDestEnemyOccupied && (dest === src + 9 || dest === src + 7)){
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * returns array of one if pawn moves two steps, else returns empty array  
-   * @param  {[type]} src  [description]
-   * @param  {[type]} dest [description]
-   * @return {[type]}      [description]
-   */
-  getSrcToDestPath(src, dest){
-    if(dest === src - 16){
-      return [src - 8];
-    }
-    else if(dest === src + 16){
-      return [src + 8];
-    }
-    return [];
   }
 }
