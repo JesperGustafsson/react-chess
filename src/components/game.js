@@ -22,10 +22,10 @@ export default class Game extends React.Component {
   }
  
   handleClick(pos){
-    let gameOver = false;
+
     const row = pos[0];
     const col = pos[1];
-    console.log("Click");
+    console.log(`CLICK... PHASE: ${this.state.PHASE}`);
     //Clicks on board
     const squares = this.state.squares;
     
@@ -48,88 +48,132 @@ export default class Game extends React.Component {
         });
       }
     }
-      
+
+    /*
+
+      DESTINATION CLICK START
+      IF ALLY: FAIL (YOU CANNOT MOVE TO YOUR OWN PIECE) -> PHASE: PICKING
+      IF OBST: FAIL (YOU CANNOT MOVE TO OBSTACLE) -> PHASE: PICKING
+      ELSE CHECKLEGAL
+        IF LEGAL
+          MOVE / COMBAT 
+            IF KING ALIVE -> PHASE: PICKING
+            ELSE -> PHASE: GAMEOVER
+        ELSE 
+          FAIL (PIECE CANNOT MOVE THERE) -> PHASE: PICKING
+
+
+
+
+    */
+
+
+    
     //Destination Click
-    else {
+    else if (this.state.PHASE === "ATTACKING") {
+     
       const isMoveLegal = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]].isMoveLegal(this.state.attackingPiece, pos, squares);
       
-      if (!isMoveLegal) {
-        console.log("Your pawn cannot move there, choose another piece");
-        this.setState({
-          status: "Your pawn cannot move there, choose another piece",
-          PHASE: "PICKING"
-        });
+
+      //Invalid click (Self)
+      if (squares[row][col] && squares[row][col].player && squares[row][col].player == this.state.player) {
+        console.log("Invalid click: Self");
+        this.setState(
+          { status: `You cannot move to your own piece, choose another piece`,
+          PHASE: "PICKING" },
+          function () {
+            console.log(this.state.PHASE);  
+          }
+        );
       }
 
+      //Invalid click (Obstacle)
+      else if (squares[row][col] && squares[row][col].player && squares[row][col].player == 2) {
+        console.log("Invalid click: Obstacle");
+        this.setState(
+          { status: `Your ${this.state.attackingPiece.constructor.name} cannot move there, choose another piece`,
+          PHASE: "PICKING" },
+          function () {
+            console.log(this.state.PHASE);  
+          }
+        );
+      }
+
+      //Invalid click (Move not legal)
+      else if (!isMoveLegal) {
+        console.log(`Your ${this.state.attackingPiece.constructor.name} cannot move there, choose another piece`);
+        this.setState(
+          { status: `Your ${this.state.attackingPiece.constructor.name} cannot move there, choose another piece`,
+          PHASE: "PICKING" },
+          function () {
+            console.log(this.state.PHASE);  
+          }
+        );
+      }
 
       //Valid click (Empty)
       else if (squares[row][col] == null) {
-        console.log("Empty click")
 
         squares[row][col] = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]]
         squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]] = null;
        
         this.setState({
-          status: "Empty click",
+          status: `${this.state.turn === "white" ? "Black's" : "White's"} turn to move`,
           PHASE: "PICKING",
           player: this.state.player*-1,
           turn: this.state.turn === "white" ? "black": "white"
-        });
+        }, function () {
+          console.log(this.state.PHASE);  
+        });    
       }
 
       //Valid click (Enemy)
       else if (squares[row][col].player && squares[row][col].player == this.state.player*-1) { 
-        console.log("Enemy click")
 
         let defendingPiece = squares[row][col];
         console.log(defendingPiece.constructor.name);
 
         let attackingPiece = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]]
-        console.log(`player:${this.state.player}, hp: ${defendingPiece.hp}, atk: ${attackingPiece.atk}`)
+
         //COMBAT
         defendingPiece.hp -= attackingPiece.atk;
+        this.setState({
+          status: `${this.state.turn === "white" ? "Black's" : "White's"} turn to move`,
+          PHASE: "PICKING",
+          player: this.state.player*-1,
+          turn: this.state.turn === "white" ? "black": "white"
+        }, function () {
+          console.log(this.state.PHASE);  
+        });   
+
         if (!defendingPiece.hp || defendingPiece.hp < 0) {
-          console.log("AYYY PIECE FUCKIGN DFEAD YO ");
           if (defendingPiece.constructor.name === "King") {
-            console.log("GAME OVER MAN GAME OVER");
-            gameOver = true;
+            this.setState({
+              status: `Game over. ${this.state.turn === "white" ? "Black" : "White"} has won the game.`,
+              PHASE: "GAMEOVER",
+            }, function () {
+              console.log(`It's Game Over, bitch. ${this.state.PHASE}`);  
+            });   
           }
           squares[row][col] = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]];
           squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]] = null;
         }
-        
-        console.log(gameOver);
-        if (!gameOver) {
-          console.log("NOT GAME OVER!!!")
-
-          this.setState({
-            status: "Enemy attacked",
-            PHASE: "PICKING",
-            player: this.state.player*-1,
-            turn: this.state.turn === "white" ? "black": "white"
-          });
-        } else {
-          console.log("GAME OVER!!!")
-          this.setState({
-            status: `Player ${this.state.turn} wins`,
-          });
-        }
-        
-      }
-      //Invalid click (Self)
-      else if (squares[row][col].player && squares[row][col].player == this.state.player) {
-        console.log("Invalid click: Self");
-      }
-
-      //Invalid click (Obstacle)
-      else if (squares[row][col].player && squares[row][col].player == 2) {
-        console.log("Invalid click: Obstacle");
       }
 
       else {
         console.log("Unknown Click")
       }
     }
+
+    else {
+      console.log(`GAME OVER!!!++ ${this.state.PHASE}`)
+      this.setState({
+        status: `Player ${this.state.turn} wins`,
+      })
+    }
+
+    console.log(`END OF PHASE : ${this.state.PHASE}`)
+
   }
 
   /**
