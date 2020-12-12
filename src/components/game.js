@@ -131,7 +131,7 @@ export default class Game extends React.Component {
       else if (squares[row][col].player && squares[row][col].player == this.state.player*-1) { 
 
         let defendingPiece = squares[row][col];
-        console.log(defendingPiece.constructor.name);
+        console.log(`ATTACKED OBJECT: ${defendingPiece}`);
 
         let attackingPiece = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]]
 
@@ -148,11 +148,13 @@ export default class Game extends React.Component {
 
         if (!defendingPiece.hp || defendingPiece.hp < 0) {
           if (defendingPiece.constructor.name === "King") {
+            console.log(`It's Game Over, bitch.1`);
             this.setState({
               status: `Game over. ${this.state.turn === "white" ? "Black" : "White"} has won the game.`,
               PHASE: "GAMEOVER",
             }, function () {
-              console.log(`It's Game Over, bitch. ${this.state.PHASE}`);  
+              console.log(`It's Game Over, bitch.2`);
+              console.log(`It's Game Over, bitch.3 ${this.state.PHASE}`);  
             });   
           }
           squares[row][col] = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]];
