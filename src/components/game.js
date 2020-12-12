@@ -131,7 +131,7 @@ export default class Game extends React.Component {
       else if (squares[row][col].player && squares[row][col].player == this.state.player*-1) { 
 
         let defendingPiece = squares[row][col];
-        console.log(`ATTACKED OBJECT: ${defendingPiece}`);
+        console.log(`ATTACKED OBJECT: ${defendingPiece.constructor}`);
 
         let attackingPiece = squares[this.state.attackingPiece[0]][this.state.attackingPiece[1]]
 
